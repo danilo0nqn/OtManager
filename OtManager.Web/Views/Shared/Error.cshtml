@@ -1,0 +1,26 @@
+@model ErrorViewModel
+@{
+    ViewData["Title"] = "Error";
+}
+<div class="min-h-[60vh] flex items-center justify-center">
+    <div class="text-center space-y-4">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 text-red-600">
+            <i data-lucide="alert-triangle" class="w-8 h-8"></i>
+        </div>
+        <h1 class="text-2xl font-semibold">Ocurrió un error inesperado</h1>
+        <p class="text-gray-500">Intente nuevamente más tarde o contacte al equipo de soporte.</p>
+        @if (Model.ShowRequestId)
+        {
+            <p class="text-xs text-gray-400">Código de seguimiento: <span class="font-mono">@Model.RequestId</span></p>
+        }
+        <a asp-controller="WorkOrders" asp-action="Index" class="btn-primary inline-flex items-center gap-2">
+            <i data-lucide="home" class="w-4 h-4"></i>
+            Volver al inicio
+        </a>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        window.dispatchEvent(new Event('ot-refresh-icons'));
+    </script>
+}

@@ -1,0 +1,110 @@
+@using OtManager.Web.Models
+@{
+    var title = ViewData["Title"] as string ?? "Gestión de Órdenes de Trabajo";
+    var activeView = ViewData["ActiveView"] as string ?? string.Empty;
+    var currentUser = ViewBag.CurrentUser as Usuario ?? new Usuario("DDELCOLLAD", "Diego", "Del Collado", "DC");
+    var toastMessage = ViewData["ToastMessage"] as string;
+    var toastVariant = ViewData["ToastVariant"] as string ?? "info";
+}
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@title - OT Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui']
+                    }
+                }
+            }
+        };
+    </script>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="h-full bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-gray-100">
+    <div class="flex h-screen w-full" data-app-shell>
+        <aside class="bg-gradient-to-b from-slate-800 to-slate-900 border-r border-slate-700 text-slate-200 transition-all duration-300 flex flex-col" data-sidebar>
+            <div class="h-16 flex items-center justify-between px-4 border-b border-slate-700">
+                <span class="text-white tracking-tight text-lg" data-sidebar-title>OT Manager</span>
+                <button type="button" class="text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg h-9 w-9 flex items-center justify-center" data-sidebar-toggle>
+                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <nav class="flex-1 p-3 space-y-1" data-sidebar-nav>
+                <a asp-controller="WorkOrders" asp-action="Index" class="sidebar-link" data-active="@(activeView == "list")">
+                    <i data-lucide="layout-list" class="w-5 h-5"></i>
+                    <span>Órdenes de Trabajo</span>
+                </a>
+                <a asp-controller="WorkOrders" asp-action="Details" asp-route-id="18768" class="sidebar-link" data-active="@(activeView == "detail")">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                    <span>Orden de Trabajo</span>
+                </a>
+                <a asp-controller="WorkOrders" asp-action="History" class="sidebar-link" data-active="@(activeView == "history")">
+                    <i data-lucide="history" class="w-5 h-5"></i>
+                    <span>Historial</span>
+                </a>
+            </nav>
+            <div class="p-3 border-t border-slate-700">
+                <div class="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-slate-200 bg-slate-800/60">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                        <span class="text-white font-semibold">@currentUser.Iniciales</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="text-sm font-medium text-white truncate">@currentUser.Nombre @currentUser.Apellidos</div>
+                        <div class="text-xs text-slate-400 truncate">@currentUser.Id</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="flex-1 flex flex-col min-w-0">
+            <header class="h-16 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between px-6 shadow-sm">
+                <div>
+                    <h1 class="text-lg font-semibold text-gray-900 dark:text-white">Gestión de Órdenes de Trabajo</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Panel de control y seguimiento</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button type="button" class="rounded-full h-10 w-10 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-slate-800" data-theme-toggle aria-label="Cambiar tema">
+                        <i data-lucide="moon" class="w-5 h-5" data-theme-icon="moon"></i>
+                        <i data-lucide="sun" class="w-5 h-5 hidden" data-theme-icon="sun"></i>
+                    </button>
+                    <div class="w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md">
+                        <span class="text-white font-semibold">@currentUser.Iniciales</span>
+                    </div>
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="ml-2">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700 text-sm">
+                            <i data-lucide="log-out" class="w-4 h-4"></i>
+                            <span>Salir</span>
+                        </button>
+                    </form>
+                </div>
+            </header>
+            <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-950">
+                <div class="py-6 px-6">
+                    @RenderBody()
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="toast-root" class="fixed top-5 right-6 z-50"></div>
+    @if (!string.IsNullOrWhiteSpace(toastMessage))
+    {
+        <div data-toast-payload data-message="@toastMessage" data-variant="@toastVariant"></div>
+    }
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>
