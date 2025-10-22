@@ -68,7 +68,7 @@ export interface ArchivoAdjunto {
 }
 
 export interface FormularioModificado {
-  tipo: 'js' | 'html' | 'css' | 'tsx' | 'ts' | 'sql';
+  tipo: 'js' | 'html' | 'css' | 'tsx' | 'ts' | 'sql' | 'cs';
   ruta: string;
   descripcion?: string;
 }
