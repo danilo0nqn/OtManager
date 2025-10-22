@@ -1,0 +1,164 @@
+@model WorkOrdersListViewModel
+@{
+    ViewData["Title"] = "Órdenes de Trabajo";
+    string EstadoClasses(int estadoId) => estadoId switch
+    {
+        1 => "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700",
+        2 => "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700",
+        3 => "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700",
+        4 => "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700",
+        5 => "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700",
+        _ => "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800/40 dark:text-gray-200 dark:border-gray-700"
+    };
+}
+<div class="space-y-6">
+    <div class="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b border-gray-100 dark:border-slate-700 flex items-center gap-3">
+            <i data-lucide="filter" class="w-5 h-5 text-blue-600"></i>
+            <h2 class="text-lg font-semibold">Filtros de búsqueda</h2>
+        </div>
+        <div class="px-6 py-6">
+            <form method="get" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="space-y-2">
+                    <label asp-for="Filters.NumeroOrden" class="text-sm text-gray-600 dark:text-gray-300">Número de Orden</label>
+                    <input asp-for="Filters.NumeroOrden" class="input" placeholder="Buscar por número" />
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm text-gray-600 dark:text-gray-300">Cliente</label>
+                    <select asp-for="Filters.ClienteId" class="input">
+                        <option value="">Todos los clientes</option>
+                        @foreach (var cliente in Model.Clientes)
+                        {
+                            <option value="@cliente.Id" @(Model.Filters.ClienteId == cliente.Id.ToString() ? "selected" : string.Empty)>@cliente.Descripcion</option>
+                        }
+                    </select>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm text-gray-600 dark:text-gray-300">Sistema</label>
+                    <select asp-for="Filters.SistemaId" class="input">
+                        <option value="">Todos los sistemas</option>
+                        @foreach (var sistema in Model.Sistemas)
+                        {
+                            <option value="@sistema.Id" @(Model.Filters.SistemaId == sistema.Id.ToString() ? "selected" : string.Empty)>@sistema.Descripcion</option>
+                        }
+                    </select>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm text-gray-600 dark:text-gray-300">Estado</label>
+                    <select asp-for="Filters.EstadoId" class="input">
+                        <option value="">Todos los estados</option>
+                        @foreach (var estado in Model.Estados)
+                        {
+                            <option value="@estado.Id" @(Model.Filters.EstadoId == estado.Id.ToString() ? "selected" : string.Empty)>@estado.Descripcion</option>
+                        }
+                    </select>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm text-gray-600 dark:text-gray-300" for="fechaDesde">Fecha desde</label>
+                    <input asp-for="Filters.FechaDesde" class="input" type="date" id="fechaDesde" />
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm text-gray-600 dark:text-gray-300" for="fechaHasta">Fecha hasta</label>
+                    <input asp-for="Filters.FechaHasta" class="input" type="date" id="fechaHasta" />
+                </div>
+                <div class="space-y-2 md:col-span-2 lg:col-span-2">
+                    <label asp-for="Filters.Asunto" class="text-sm text-gray-600 dark:text-gray-300">Asunto</label>
+                    <input asp-for="Filters.Asunto" class="input" placeholder="Buscar en asunto" />
+                </div>
+                <div class="flex items-end gap-3 md:col-span-2 lg:col-span-1">
+                    <button type="submit" class="flex-1 h-11 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm flex items-center justify-center gap-2">
+                        <i data-lucide="search" class="w-4 h-4"></i>
+                        Buscar
+                    </button>
+                    <a asp-action="Index" class="flex-1 h-11 rounded-lg border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 flex items-center justify-center">
+                        Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b border-gray-100 dark:border-slate-700 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <i data-lucide="search" class="w-5 h-5 text-blue-600"></i>
+                <h2 class="text-lg font-semibold">Resultados</h2>
+            </div>
+            <span class="text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-slate-800 px-3 py-1 rounded-full">
+                @Model.Orders.Count @(Model.Orders.Count == 1 ? "orden" : "órdenes")
+            </span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+                <thead class="bg-gray-50 dark:bg-slate-900/40">
+                    <tr>
+                        <th class="table-head">Orden</th>
+                        <th class="table-head">Cliente</th>
+                        <th class="table-head">Sistema</th>
+                        <th class="table-head">Asunto</th>
+                        <th class="table-head">Responsable</th>
+                        <th class="table-head">Estado</th>
+                        <th class="table-head">Fecha Solicitud</th>
+                        <th class="table-head text-right">Horas</th>
+                        <th class="table-head text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white dark:bg-slate-900 divide-y divide-gray-100 dark:divide-slate-800">
+                    @if (Model.Orders.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="9" class="py-10 text-center text-gray-500 dark:text-gray-400">No se encontraron órdenes con los filtros aplicados.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var order in Model.Orders)
+                        {
+                            <tr class="hover:bg-blue-50/70 dark:hover:bg-slate-800/60 transition">
+                                <td class="table-cell">@order.Numero</td>
+                                <td class="table-cell">@order.Cliente.Descripcion</td>
+                                <td class="table-cell">@order.Sistema.Descripcion</td>
+                                <td class="table-cell max-w-xs truncate">@order.Asunto</td>
+                                <td class="table-cell">@order.UsuarioResponsable.Apellidos</td>
+                                <td class="table-cell">
+                                    <span class="badge @EstadoClasses(order.Estado.Id)">@order.Estado.Descripcion</span>
+                                </td>
+                                <td class="table-cell">@order.FechaSolicitud.ToString("dd/MM/yyyy")</td>
+                                <td class="table-cell text-right">@order.HorasConsumidas.ToString("0.0")</td>
+                                <td class="table-cell text-right">
+                                    <a asp-action="Details" asp-route-id="@order.Numero" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800">
+                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                        Ver
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.Orders.Count > 0)
+        {
+            <div class="px-6 py-5 bg-gray-50 dark:bg-slate-900/60 border-t border-gray-100 dark:border-slate-800 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">Cantidad de OT</div>
+                    <div class="text-xl font-semibold text-gray-900 dark:text-gray-100">@Model.Orders.Count</div>
+                </div>
+                <div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">Total horas estimadas</div>
+                    <div class="text-xl font-semibold text-gray-900 dark:text-gray-100">@Model.TotalHorasEstimadas.ToString("0.0")</div>
+                </div>
+                <div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">Total horas avance</div>
+                    <div class="text-xl font-semibold text-gray-900 dark:text-gray-100">@Model.TotalHorasConsumidas.ToString("0.0")</div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+@section Scripts {
+    <script>
+        window.dispatchEvent(new Event('ot-refresh-icons'));
+    </script>
+}
