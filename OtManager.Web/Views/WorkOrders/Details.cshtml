@@ -1,0 +1,452 @@
+@model WorkOrderDetailViewModel
+@{
+    ViewData["Title"] = "Detalle de Orden";
+    string FormatFileSize(long bytes)
+    {
+        if (bytes == 0)
+        {
+            return "0 B";
+        }
+
+        string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+        var order = (int)Math.Floor(Math.Log(bytes, 1024));
+        order = Math.Clamp(order, 0, sizes.Length - 1);
+        var size = bytes / Math.Pow(1024, order);
+        return $"{size:0.##} {sizes[order]}";
+    }
+}
+<div class="space-y-6" data-workorder-detail>
+    <div class="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b border-gray-100 dark:border-slate-700 flex items-center gap-3">
+            <i data-lucide="search" class="w-5 h-5 text-blue-600"></i>
+            <h2 class="text-lg font-semibold">Buscar Orden de Trabajo</h2>
+        </div>
+        <div class="px-6 py-6">
+            <form asp-action="Details" method="get" class="flex flex-col lg:flex-row gap-4">
+                <div class="flex-1">
+                    <label class="block text-sm text-gray-600 dark:text-gray-300 mb-2" for="searchNumber">Número de Orden</label>
+                    <input id="searchNumber" name="searchNumber" value="@Model.SearchNumber" placeholder="Ingrese número de orden" class="input" />
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="h-11 px-6 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium flex items-center gap-2">
+                        <i data-lucide="search" class="w-4 h-4"></i>
+                        Buscar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (Model.Order is null)
+    {
+        <div class="bg-white dark:bg-slate-900 border border-dashed border-gray-300 dark:border-slate-700 rounded-2xl p-12 text-center space-y-4">
+            <i data-lucide="file-search" class="w-12 h-12 mx-auto text-gray-400"></i>
+            <p class="text-gray-600 dark:text-gray-400">Seleccione una orden de trabajo desde el listado para visualizar el detalle.</p>
+        </div>
+    }
+    else
+    {
+        var order = Model.Order;
+        <div class="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden" data-order-card>
+            <div class="px-6 py-5 border-b border-gray-100 dark:border-slate-700 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">Orden seleccionada</div>
+                    <div class="text-2xl font-semibold text-gray-900 dark:text-white">OT #@order.Numero</div>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    @if (!Model.IsEditing)
+                    {
+                        <a asp-action="Details" asp-route-id="@order.Numero" asp-route-edit="true" class="btn-secondary">
+                            <i data-lucide="edit" class="w-4 h-4"></i>
+                            Modificar
+                        </a>
+                    }
+                    else
+                    {
+                        <button type="submit" form="work-order-update" class="btn-primary">
+                            <i data-lucide="save" class="w-4 h-4"></i>
+                            Grabar
+                        </button>
+                        <a asp-action="Details" asp-route-id="@order.Numero" class="btn-muted">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                            Cancelar
+                        </a>
+                    }
+                </div>
+            </div>
+
+            <div class="px-6 py-6 space-y-6">
+                <form asp-action="Update" method="post" id="work-order-update" class="hidden">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Numero" value="@order.Numero" />
+                </form>
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+                    <div>
+                        <label class="label">Orden</label>
+                        <input class="input" value="@order.Numero" readonly />
+                    </div>
+                    <div>
+                        <label class="label">Depende de</label>
+                        <input class="input" value="@(order.DependeDe?.ToString() ?? "-")" readonly />
+                    </div>
+                    <div>
+                        <label class="label">Fecha solicitud</label>
+                        <input class="input" value="@order.FechaSolicitud:dd/MM/yyyy" readonly />
+                    </div>
+                    <div>
+                        <label class="label">Fecha vencimiento</label>
+                        <input class="input" value="@(order.FechaVencimiento?.ToString("dd/MM/yyyy") ?? "-")" readonly />
+                    </div>
+                    <div>
+                        <label class="label">Cliente</label>
+                        <select name="ClienteId" class="input" form="work-order-update" @(Model.IsEditing ? string.Empty : "disabled")>
+                            @foreach (var cliente in Model.Clientes)
+                            {
+                                var isSelected = cliente.Id == order.Cliente.Id;
+                                <option value="@cliente.Id" selected="@(isSelected ? "selected" : null)">@cliente.Descripcion</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label class="label">Sistema</label>
+                        <select name="SistemaId" class="input" form="work-order-update" @(Model.IsEditing ? string.Empty : "disabled")>
+                            @foreach (var sistema in Model.Sistemas)
+                            {
+                                var isSelected = sistema.Id == order.Sistema.Id;
+                                <option value="@sistema.Id" selected="@(isSelected ? "selected" : null)">@sistema.Descripcion</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label class="label">Estado del trabajo</label>
+                        <select name="EstadoId" class="input" form="work-order-update" @(Model.IsEditing ? string.Empty : "disabled")>
+                            @foreach (var estado in Model.Estados)
+                            {
+                                var isSelected = estado.Id == order.Estado.Id;
+                                <option value="@estado.Id" selected="@(isSelected ? "selected" : null)">@estado.Descripcion</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label class="label">Proyecto</label>
+                        <input name="Proyecto" class="input" value="@order.Proyecto" form="work-order-update" @(Model.IsEditing ? string.Empty : "readonly") />
+                    </div>
+                    <div>
+                        <label class="label">Usuario responsable</label>
+                        <select name="UsuarioResponsableId" class="input" form="work-order-update" @(Model.IsEditing ? string.Empty : "disabled")>
+                            @foreach (var usuario in Model.Usuarios)
+                            {
+                                var isSelected = usuario.Id == order.UsuarioResponsable.Id;
+                                <option value="@usuario.Id" selected="@(isSelected ? "selected" : null)">@usuario.Nombre @usuario.Apellidos</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label class="label">Usuario solicitante</label>
+                        <select name="UsuarioSolicitanteId" class="input" form="work-order-update" @(Model.IsEditing ? string.Empty : "disabled")>
+                            @foreach (var usuario in Model.Usuarios)
+                            {
+                                var isSelected = usuario.Id == order.UsuarioSolicitante.Id;
+                                <option value="@usuario.Id" selected="@(isSelected ? "selected" : null)">@usuario.Nombre @usuario.Apellidos</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label class="label">Módulo/Pantallas</label>
+                        <input name="Modulo" class="input" value="@order.Modulo" form="work-order-update" @(Model.IsEditing ? string.Empty : "readonly") />
+                    </div>
+                    <div>
+                        <label class="label">Solicitado por</label>
+                        <input name="SolicitadoPor" class="input" value="@order.SolicitadoPor" form="work-order-update" @(Model.IsEditing ? string.Empty : "readonly") />
+                    </div>
+                    <div class="md:col-span-2 xl:col-span-4">
+                        <label class="label">Asunto</label>
+                        <input name="Asunto" class="input" value="@order.Asunto" form="work-order-update" @(Model.IsEditing ? string.Empty : "readonly") />
+                    </div>
+                    <div>
+                        <label class="label">Horas facturables</label>
+                        <input class="input" value="0" readonly />
+                    </div>
+                    <div>
+                        <label class="label">% de avance</label>
+                        <input name="PorcentajeAvance" type="number" class="input" value="@order.PorcentajeAvance" form="work-order-update" @(Model.IsEditing ? string.Empty : "readonly") />
+                    </div>
+                    <div>
+                        <label class="label">Horas consumidas</label>
+                        <input class="input" value="@order.HorasConsumidas" readonly />
+                    </div>
+                    <div>
+                        <label class="label">Horas avances</label>
+                        <input class="input" value="@order.HorasConsumidas" readonly />
+                    </div>
+                </div>
+                
+
+                <div class="bg-gray-50 dark:bg-slate-900/60 rounded-xl p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Progreso del trabajo</span>
+                        <span class="text-sm font-semibold">@order.PorcentajeAvance%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-slate-800 h-3 rounded-full overflow-hidden">
+                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-3" style="width:@order.PorcentajeAvance%;"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="tabs" data-tabs>
+                        <div class="tabs-header">
+                            <button type="button" class="tab-button" data-tab="descripcion">Descripción</button>
+                            <button type="button" class="tab-button" data-tab="avances">Avances del trabajo</button>
+                            <button type="button" class="tab-button" data-tab="produccion">Puestas en producción</button>
+                            <button type="button" class="tab-button" data-tab="historial">Historial de estados</button>
+                            <button type="button" class="tab-button" data-tab="archivos">Archivos adjuntos</button>
+                        </div>
+                        <div class="tab-panels">
+                            <section class="tab-panel" data-tab-panel="descripcion">
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="label">Descripción</label>
+                                        <textarea name="Descripcion" class="input h-36 resize-none" form="work-order-update" @(Model.IsEditing ? string.Empty : "readonly")>@order.Descripcion</textarea>
+                                    </div>
+                                    <div>
+                                        <label class="label">Observaciones</label>
+                                        <textarea name="Observaciones" class="input h-36 resize-none" form="work-order-update" @(Model.IsEditing ? string.Empty : "readonly")>@order.Observaciones</textarea>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section class="tab-panel hidden" data-tab-panel="avances">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div>
+                                        <h3 class="text-base font-semibold">Avances del trabajo</h3>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">Detalle de registros de avance y horas consumidas.</p>
+                                    </div>
+                                    <form asp-action="TriggerDemoToast" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@order.Numero" />
+                                        <input type="hidden" name="type" value="avance" />
+                                        <button type="submit" class="btn-secondary">
+                                            <i data-lucide="plus" class="w-4 h-4"></i>
+                                            Agregar avance
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="overflow-x-auto border border-gray-100 dark:border-slate-700 rounded-xl">
+                                    <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+                                        <thead class="bg-gray-50 dark:bg-slate-900/50">
+                                            <tr>
+                                                <th class="table-head">Fecha</th>
+                                                <th class="table-head">Usuario</th>
+                                                <th class="table-head text-right">Horas</th>
+                                                <th class="table-head">Descripción</th>
+                                                <th class="table-head text-right">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white dark:bg-slate-900 divide-y divide-gray-100 dark:divide-slate-800">
+                                            @if (!Model.Avances.Any())
+                                            {
+                                                <tr>
+                                                    <td colspan="5" class="py-8 text-center text-gray-500">No hay avances registrados.</td>
+                                                </tr>
+                                            }
+                                            else
+                                            {
+                                                foreach (var avance in Model.Avances)
+                                                {
+                                                    <tr class="hover:bg-blue-50/60 dark:hover:bg-slate-800/60">
+                                                        <td class="table-cell">@avance.Fecha:dd/MM/yyyy</td>
+                                                        <td class="table-cell">@avance.Usuario.Apellidos</td>
+                                                        <td class="table-cell text-right">@avance.HorasAvance.ToString("0.0")</td>
+                                                        <td class="table-cell">@avance.Descripcion</td>
+                                                        <td class="table-cell text-right">
+                                                            <form asp-action="TriggerDemoToast" method="post" class="inline">
+                                                                @Html.AntiForgeryToken()
+                                                                <input type="hidden" name="id" value="@order.Numero" />
+                                                                <input type="hidden" name="type" value="delete" />
+                                                                <button type="submit" class="text-red-500 hover:text-red-600 inline-flex items-center gap-1">
+                                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                                    Eliminar
+                                                                </button>
+                                                            </form>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </section>
+
+                            <section class="tab-panel hidden" data-tab-panel="produccion">
+                                @if (!Model.Puestas.Any())
+                                {
+                                    <div class="py-10 text-center text-gray-500">No hay puestas en producción registradas.</div>
+                                }
+                                else
+                                {
+                                    <div class="space-y-4">
+                                        @foreach (var puesta in Model.Puestas.OrderByDescending(p => p.Fecha))
+                                        {
+                                            <div class="border border-gray-100 dark:border-slate-700 rounded-xl p-5 space-y-4 bg-white/70 dark:bg-slate-900/70">
+                                                <div class="flex flex-wrap items-center gap-4 justify-between">
+                                                    <div>
+                                                        <div class="text-sm text-gray-500">Puesta #{puesta.Id}</div>
+                                                        <div class="text-lg font-semibold">@puesta.Fecha:dd/MM/yyyy</div>
+                                                    </div>
+                                                    <div class="flex items-center gap-2 text-sm text-gray-500">
+                                                        <i data-lucide="user" class="w-4 h-4"></i>
+                                                        <span>@puesta.Usuario.Nombre @puesta.Usuario.Apellidos</span>
+                                                    </div>
+                                                </div>
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2 flex items-center gap-2">
+                                                            <i data-lucide="code" class="w-4 h-4"></i>
+                                                            Formularios modificados
+                                                        </h4>
+                                                        <div class="space-y-1">
+                                                            @foreach (var form in puesta.FormulariosModificados)
+                                                            {
+                                                                <div class="px-3 py-2 bg-gray-50 dark:bg-slate-900/60 rounded-lg text-sm font-mono flex items-center justify-between gap-2">
+                                                                    <span>@form.Ruta</span>
+                                                                    <span class="text-xs text-gray-500">@form.Tipo.ToUpperInvariant()</span>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2 flex items-center gap-2">
+                                                            <i data-lucide="database" class="w-4 h-4"></i>
+                                                            Modificaciones a la base de datos
+                                                        </h4>
+                                                        <div class="space-y-3">
+                                                            @foreach (var mod in puesta.ModificacionesBaseDatos)
+                                                            {
+                                                                <div class="border-l-4 border-blue-500 bg-blue-50/60 dark:bg-slate-900/60 rounded-lg px-4 py-3">
+                                                                    <div class="flex items-center gap-2">
+                                                                        <span class="text-xs font-semibold uppercase tracking-wide text-blue-600">@mod.Tipo</span>
+                                                                        <span class="font-mono">@mod.Nombre</span>
+                                                                    </div>
+                                                                    @if (!string.IsNullOrWhiteSpace(mod.Descripcion))
+                                                                    {
+                                                                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">@mod.Descripcion</p>
+                                                                    }
+                                                                    <details class="mt-2">
+                                                                        <summary class="text-xs text-blue-600 hover:text-blue-700 cursor-pointer">Ver script</summary>
+                                                                        <pre class="mt-2 p-3 bg-slate-950 text-green-400 rounded-lg overflow-x-auto text-xs"><code>@mod.Script</code></pre>
+                                                                    </details>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </section>
+
+                            <section class="tab-panel hidden" data-tab-panel="historial">
+                                <div class="overflow-x-auto border border-gray-100 dark:border-slate-700 rounded-xl">
+                                    <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+                                        <thead class="bg-gray-50 dark:bg-slate-900/50">
+                                            <tr>
+                                                <th class="table-head">Secuencia</th>
+                                                <th class="table-head">Estado</th>
+                                                <th class="table-head">Fecha</th>
+                                                <th class="table-head">Usuario</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white dark:bg-slate-900 divide-y divide-gray-100 dark:divide-slate-800">
+                                            @if (!Model.Historial.Any())
+                                            {
+                                                <tr>
+                                                    <td colspan="4" class="py-8 text-center text-gray-500">No hay historial disponible.</td>
+                                                </tr>
+                                            }
+                                            else
+                                            {
+                                                foreach (var item in Model.Historial.OrderByDescending(h => h.Secuencia))
+                                                {
+                                                    <tr class="hover:bg-blue-50/60 dark:hover:bg-slate-800/60">
+                                                        <td class="table-cell">@item.Secuencia</td>
+                                                        <td class="table-cell">
+                                                            <span class="badge">@item.Estado.Descripcion</span>
+                                                        </td>
+                                                        <td class="table-cell">@item.FechaAlta:dd/MM/yyyy HH:mm</td>
+                                                        <td class="table-cell">@item.Usuario.Nombre @item.Usuario.Apellidos</td>
+                                                    </tr>
+                                                }
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </section>
+
+                            <section class="tab-panel hidden" data-tab-panel="archivos">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div>
+                                        <h3 class="text-base font-semibold">Archivos adjuntos</h3>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">Documentación relevante de la orden.</p>
+                                    </div>
+                                    <form asp-action="TriggerDemoToast" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@order.Numero" />
+                                        <input type="hidden" name="type" value="avance" />
+                                        <button type="submit" class="btn-secondary">
+                                            <i data-lucide="upload" class="w-4 h-4"></i>
+                                            Subir archivo
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="space-y-3">
+                                    @if (!Model.Archivos.Any())
+                                    {
+                                        <div class="py-10 text-center text-gray-500 bg-white/60 dark:bg-slate-900/60 border border-gray-100 dark:border-slate-700 rounded-xl">
+                                            No hay archivos adjuntos.
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        foreach (var archivo in Model.Archivos.OrderByDescending(a => a.FechaSubida))
+                                        {
+                                            <div class="border border-gray-100 dark:border-slate-700 rounded-xl px-4 py-3 flex flex-wrap items-center gap-4 bg-white/70 dark:bg-slate-900/70">
+                                                <div class="flex items-center gap-3 flex-1 min-w-[200px]">
+                                                    <i data-lucide="file" class="w-5 h-5 text-blue-600"></i>
+                                                    <div>
+                                                        <div class="font-medium">@archivo.NombreArchivo</div>
+                                                        <div class="text-xs text-gray-500">@archivo.FechaSubida:dd/MM/yyyy · @archivo.Usuario.Apellidos · @FormatFileSize(archivo.TamanioBytes)</div>
+                                                    </div>
+                                                </div>
+                                                <div class="flex items-center gap-3">
+                                                    <a href="#" class="btn-muted">
+                                                        <i data-lucide="download" class="w-4 h-4"></i>
+                                                        Descargar
+                                                    </a>
+                                                    <form asp-action="TriggerDemoToast" method="post">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@order.Numero" />
+                                                        <input type="hidden" name="type" value="delete" />
+                                                        <button type="submit" class="btn-danger">
+                                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                            Eliminar
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+@section Scripts {
+    <script>
+        window.dispatchEvent(new Event('ot-refresh-icons'));
+    </script>
+}

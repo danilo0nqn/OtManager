@@ -1,0 +1,112 @@
+@model RecentHistoryViewModel
+@{
+    ViewData["Title"] = "Historial Reciente";
+    string EstadoClasses(int estadoId) => estadoId switch
+    {
+        1 => "bg-yellow-100 text-yellow-800 border-yellow-200",
+        2 => "bg-blue-100 text-blue-800 border-blue-200",
+        3 => "bg-orange-100 text-orange-800 border-orange-200",
+        4 => "bg-green-100 text-green-800 border-green-200",
+        5 => "bg-red-100 text-red-800 border-red-200",
+        _ => "bg-gray-100 text-gray-800 border-gray-200"
+    };
+}
+<div class="space-y-6">
+    <div class="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b border-gray-100 dark:border-slate-700 flex items-center gap-3">
+            <i data-lucide="clock" class="w-5 h-5 text-blue-600"></i>
+            <h2 class="text-lg font-semibold">Historial reciente de órdenes de trabajo</h2>
+        </div>
+        <div class="px-6 py-6 space-y-4">
+            @if (!Model.RecentOrders.Any())
+            {
+                <div class="text-center text-gray-500 py-16">
+                    <i data-lucide="clock" class="w-12 h-12 mx-auto mb-4 text-gray-300"></i>
+                    No hay órdenes recientes.
+                </div>
+            }
+            else
+            {
+                foreach (var orden in Model.RecentOrders.OrderByDescending(o => o.FechaSolicitud))
+                {
+                    <article class="border border-gray-100 dark:border-slate-700 rounded-2xl p-5 hover:shadow-lg transition cursor-pointer bg-white/80 dark:bg-slate-900/80" onclick="location.href='@Url.Action("Details", "WorkOrders", new { id = orden.Numero })'">
+                        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                            <div class="space-y-3 flex-1">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold">OT</div>
+                                    <div>
+                                        <div class="text-lg font-semibold">Orden #@orden.Numero</div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">@orden.Cliente.Descripcion</div>
+                                    </div>
+                                </div>
+                                <p class="text-gray-700 dark:text-gray-300">@orden.Asunto</p>
+                                <div class="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
+                                    <span class="inline-flex items-center gap-2">
+                                        <i data-lucide="calendar" class="w-4 h-4"></i>
+                                        @orden.FechaSolicitud:dd/MM/yyyy
+                                    </span>
+                                    <span class="inline-flex items-center gap-2">
+                                        <i data-lucide="user" class="w-4 h-4"></i>
+                                        @orden.UsuarioResponsable.Apellidos
+                                    </span>
+                                    <span class="inline-flex items-center gap-2">
+                                        <i data-lucide="clock-4" class="w-4 h-4"></i>
+                                        @orden.HorasConsumidas.ToString("0.0") hs
+                                    </span>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="badge @EstadoClasses(orden.Estado.Id) border">@orden.Estado.Descripcion</span>
+                                    <span class="badge bg-slate-100 text-slate-800 border border-slate-200">@orden.Sistema.Descripcion</span>
+                                    @if (!string.IsNullOrWhiteSpace(orden.Modulo))
+                                    {
+                                        <span class="badge bg-purple-100 text-purple-800 border border-purple-200">@orden.Modulo</span>
+                                    }
+                                </div>
+                                @if (orden.PorcentajeAvance > 0)
+                                {
+                                    <div class="mt-3">
+                                        <div class="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                                            <span>Progreso</span>
+                                            <span class="font-semibold text-gray-900 dark:text-gray-100">@orden.PorcentajeAvance%</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 dark:bg-slate-800 h-2 rounded-full mt-1">
+                                            <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full" style="width:@orden.PorcentajeAvance%;"></div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <a asp-action="Details" asp-route-id="@orden.Numero" class="h-10 px-4 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 inline-flex items-center gap-2 self-start">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                                Ver detalle
+                            </a>
+                        </div>
+                    </article>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="p-5 rounded-2xl bg-blue-50 dark:bg-blue-900/30">
+            <div class="text-sm text-blue-600">Total órdenes</div>
+            <div class="text-2xl font-semibold text-blue-900 dark:text-blue-100 mt-2">@Model.RecentOrders.Count</div>
+        </div>
+        <div class="p-5 rounded-2xl bg-green-50 dark:bg-green-900/30">
+            <div class="text-sm text-green-600">Terminadas</div>
+            <div class="text-2xl font-semibold text-green-900 dark:text-green-100 mt-2">@Model.RecentOrders.Count(o => o.Estado.Id == 4)</div>
+        </div>
+        <div class="p-5 rounded-2xl bg-orange-50 dark:bg-orange-900/30">
+            <div class="text-sm text-orange-600">En desarrollo</div>
+            <div class="text-2xl font-semibold text-orange-900 dark:text-orange-100 mt-2">@Model.RecentOrders.Count(o => o.Estado.Id == 2)</div>
+        </div>
+        <div class="p-5 rounded-2xl bg-yellow-50 dark:bg-yellow-900/30">
+            <div class="text-sm text-yellow-600">Pendientes</div>
+            <div class="text-2xl font-semibold text-yellow-900 dark:text-yellow-100 mt-2">@Model.RecentOrders.Count(o => o.Estado.Id == 1)</div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        window.dispatchEvent(new Event('ot-refresh-icons'));
+    </script>
+}

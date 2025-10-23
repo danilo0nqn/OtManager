@@ -1,0 +1,90 @@
+@model LoginViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Iniciar Sesión";
+}
+<!DOCTYPE html>
+<html lang="es" class="h-full" data-auth-page>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - OT Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui']
+                    }
+                }
+            }
+        };
+    </script>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 text-gray-900 dark:text-gray-100">
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+
+    <div class="absolute top-6 right-6">
+        <button type="button" class="rounded-full h-11 w-11 flex items-center justify-center bg-white/80 dark:bg-slate-800/80 text-gray-600 dark:text-gray-300 shadow-sm" data-theme-toggle aria-label="Cambiar tema">
+            <span class="sr-only">Cambiar tema</span>
+            <i data-lucide="moon" class="w-5 h-5" data-theme-icon="moon"></i>
+            <i data-lucide="sun" class="w-5 h-5 hidden" data-theme-icon="sun"></i>
+        </button>
+    </div>
+
+    <div class="relative w-full max-w-xl mx-auto px-4 py-16">
+        <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-700 p-10">
+            <div class="text-center space-y-4">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-lg">
+                    <i data-lucide="building-2" class="w-10 h-10 text-white"></i>
+                </div>
+                <div class="space-y-1">
+                    <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Gestión de Órdenes de Trabajo</h1>
+                    <p class="text-gray-500 dark:text-gray-400">Ingrese sus credenciales para continuar</p>
+                </div>
+            </div>
+
+            <form asp-action="Login" method="post" class="mt-10 space-y-6" novalidate data-validate>
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-sm text-red-600"></div>
+
+                <div class="space-y-2">
+                    <label asp-for="Username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Usuario</label>
+                    <input asp-for="Username" class="w-full h-11 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900/80 px-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Ingrese su usuario" autocomplete="username" />
+                    <span asp-validation-for="Username" class="text-xs text-red-500"></span>
+                </div>
+
+                <div class="space-y-2">
+                    <label asp-for="Password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Contraseña</label>
+                    <input asp-for="Password" class="w-full h-11 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900/80 px-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Ingrese su contraseña" autocomplete="current-password" />
+                    <span asp-validation-for="Password" class="text-xs text-red-500"></span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <input asp-for="RememberMe" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                    <label asp-for="RememberMe" class="text-sm text-gray-700 dark:text-gray-300">Recordar usuario</label>
+                </div>
+
+                <button type="submit" class="w-full h-12 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg shadow-blue-600/20 transition">Iniciar sesión</button>
+            </form>
+
+            <div class="mt-8 text-center text-sm text-gray-400 dark:text-gray-500">
+                ITSur - Sistema de Gestión v2.0
+            </div>
+        </div>
+
+        <div class="absolute -z-10 -top-6 -left-6 w-32 h-32 bg-blue-200 rounded-full opacity-30 blur-3xl"></div>
+        <div class="absolute -z-10 -bottom-10 -right-10 w-40 h-40 bg-orange-200 rounded-full opacity-30 blur-3xl"></div>
+    </div>
+
+    <div id="toast-root" class="fixed top-6 right-6 z-50"></div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+</body>
+</html>
