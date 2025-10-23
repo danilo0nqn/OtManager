@@ -45,8 +45,7 @@ public sealed class AccountController : Controller
             return View(model);
         }
 
-        var result = await _authService.LoginAsync(model.Username, model.Password, HttpContext.RequestAborted).ConfigureAwait(fa
-lse);
+        var result = await _authService.LoginAsync(model.Username, model.Password, HttpContext.RequestAborted).ConfigureAwait(false);
         if (!result.Success)
         {
             ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "No fue posible iniciar sesión.");
