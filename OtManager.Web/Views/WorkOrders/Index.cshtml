@@ -30,7 +30,14 @@
                         @foreach (var cliente in Model.Clientes)
                         {
                             var isSelected = Model.Filters.ClienteId == cliente.Id.ToString();
-                            <option value="@cliente.Id" selected="@(isSelected ? "selected" : null)">@cliente.Descripcion</option>
+                            if (isSelected)
+                            {
+                                <option value="@cliente.Id" selected>@cliente.Descripcion</option>
+                            }
+                            else
+                            {
+                                <option value="@cliente.Id">@cliente.Descripcion</option>
+                            }
                         }
                     </select>
                 </div>
@@ -41,7 +48,14 @@
                         @foreach (var sistema in Model.Sistemas)
                         {
                             var isSelected = Model.Filters.SistemaId == sistema.Id.ToString();
-                            <option value="@sistema.Id" selected="@(isSelected ? "selected" : null)">@sistema.Descripcion</option>
+                            if (isSelected)
+                            {
+                                <option value="@sistema.Id" selected>@sistema.Descripcion</option>
+                            }
+                            else
+                            {
+                                <option value="@sistema.Id">@sistema.Descripcion</option>
+                            }
                         }
                     </select>
                 </div>
@@ -52,7 +66,14 @@
                         @foreach (var estado in Model.Estados)
                         {
                             var isSelected = Model.Filters.EstadoId == estado.Id.ToString();
-                            <option value="@estado.Id" selected="@(isSelected ? "selected" : null)">@estado.Descripcion</option>
+                            if (isSelected)
+                            {
+                                <option value="@estado.Id" selected>@estado.Descripcion</option>
+                            }
+                            else
+                            {
+                                <option value="@estado.Id">@estado.Descripcion</option>
+                            }
                         }
                     </select>
                 </div>

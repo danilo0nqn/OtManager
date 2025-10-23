@@ -103,7 +103,14 @@
                             @foreach (var cliente in Model.Clientes)
                             {
                                 var isSelected = cliente.Id == order.Cliente.Id;
-                                <option value="@cliente.Id" selected="@(isSelected ? "selected" : null)">@cliente.Descripcion</option>
+                                if (isSelected)
+                                {
+                                    <option value="@cliente.Id" selected>@cliente.Descripcion</option>
+                                }
+                                else
+                                {
+                                    <option value="@cliente.Id">@cliente.Descripcion</option>
+                                }
                             }
                         </select>
                     </div>
@@ -113,7 +120,14 @@
                             @foreach (var sistema in Model.Sistemas)
                             {
                                 var isSelected = sistema.Id == order.Sistema.Id;
-                                <option value="@sistema.Id" selected="@(isSelected ? "selected" : null)">@sistema.Descripcion</option>
+                                if (isSelected)
+                                {
+                                    <option value="@sistema.Id" selected>@sistema.Descripcion</option>
+                                }
+                                else
+                                {
+                                    <option value="@sistema.Id">@sistema.Descripcion</option>
+                                }
                             }
                         </select>
                     </div>
@@ -123,7 +137,14 @@
                             @foreach (var estado in Model.Estados)
                             {
                                 var isSelected = estado.Id == order.Estado.Id;
-                                <option value="@estado.Id" selected="@(isSelected ? "selected" : null)">@estado.Descripcion</option>
+                                if (isSelected)
+                                {
+                                    <option value="@estado.Id" selected>@estado.Descripcion</option>
+                                }
+                                else
+                                {
+                                    <option value="@estado.Id">@estado.Descripcion</option>
+                                }
                             }
                         </select>
                     </div>
@@ -137,7 +158,14 @@
                             @foreach (var usuario in Model.Usuarios)
                             {
                                 var isSelected = usuario.Id == order.UsuarioResponsable.Id;
-                                <option value="@usuario.Id" selected="@(isSelected ? "selected" : null)">@usuario.Nombre @usuario.Apellidos</option>
+                                if (isSelected)
+                                {
+                                    <option value="@usuario.Id" selected>@usuario.Nombre @usuario.Apellidos</option>
+                                }
+                                else
+                                {
+                                    <option value="@usuario.Id">@usuario.Nombre @usuario.Apellidos</option>
+                                }
                             }
                         </select>
                     </div>
@@ -147,7 +175,14 @@
                             @foreach (var usuario in Model.Usuarios)
                             {
                                 var isSelected = usuario.Id == order.UsuarioSolicitante.Id;
-                                <option value="@usuario.Id" selected="@(isSelected ? "selected" : null)">@usuario.Nombre @usuario.Apellidos</option>
+                                if (isSelected)
+                                {
+                                    <option value="@usuario.Id" selected>@usuario.Nombre @usuario.Apellidos</option>
+                                }
+                                else
+                                {
+                                    <option value="@usuario.Id">@usuario.Nombre @usuario.Apellidos</option>
+                                }
                             }
                         </select>
                     </div>
